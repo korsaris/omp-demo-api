@@ -11,7 +11,7 @@ import (
 	model "github.com/ozonmp/omp-demo-api/internal/model"
 )
 
-// MockEventRepo is a mock of EventRepo interface.
+// MockEventRepo is a mock of EventRepo interface./*  */
 type MockEventRepo struct {
 	ctrl     *gomock.Controller
 	recorder *MockEventRepoMockRecorder
@@ -35,7 +35,7 @@ func (m *MockEventRepo) EXPECT() *MockEventRepoMockRecorder {
 }
 
 // Add mocks base method.
-func (m *MockEventRepo) Add(arg0 []model.SubdomainEvent) error {
+func (m *MockEventRepo) Add(arg0 []model.RetentionEvent) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Add", arg0)
 	ret0, _ := ret[0].(error)
@@ -49,10 +49,10 @@ func (mr *MockEventRepoMockRecorder) Add(arg0 interface{}) *gomock.Call {
 }
 
 // Lock mocks base method.
-func (m *MockEventRepo) Lock(arg0 uint64) ([]model.SubdomainEvent, error) {
+func (m *MockEventRepo) Lock(arg0 uint64) ([]model.RetentionEvent, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Lock", arg0)
-	ret0, _ := ret[0].([]model.SubdomainEvent)
+	ret0, _ := ret[0].([]model.RetentionEvent)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

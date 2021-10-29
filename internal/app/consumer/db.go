@@ -15,7 +15,7 @@ type Consumer interface {
 
 type consumer struct {
 	n      uint64
-	events chan<- model.SubdomainEvent
+	events chan<- model.RetentionEvent
 
 	repo repo.EventRepo
 
@@ -26,20 +26,12 @@ type consumer struct {
 	wg   *sync.WaitGroup
 }
 
-type Config struct {
-	n         uint64
-	events    chan<- model.SubdomainEvent
-	repo      repo.EventRepo
-	batchSize uint64
-	timeout   time.Duration
-}
-
 func NewDbConsumer(
 	n uint64,
 	batchSize uint64,
 	consumeTimeout time.Duration,
 	repo repo.EventRepo,
-	events chan<- model.SubdomainEvent) Consumer {
+	events chan<- model.RetentionEvent) Consumer {
 
 	wg := &sync.WaitGroup{}
 	done := make(chan bool)
