@@ -1,6 +1,7 @@
 package retranslator
 
 import (
+	"context"
 	"time"
 
 	"github.com/ozonmp/omp-demo-api/internal/app/consumer"
@@ -63,8 +64,9 @@ func NewRetranslator(cfg Config) Retranslator {
 }
 
 func (r *retranslator) Start() {
-	r.producer.Start()
-	r.consumer.Start()
+	// FIXME: Replace context
+	r.producer.Start(context.Background())
+	r.consumer.Start(context.Background())
 }
 
 func (r *retranslator) Close() {

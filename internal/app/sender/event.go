@@ -5,5 +5,5 @@ import (
 )
 
 type EventSender interface {
-	Send(subdomain *model.RetentionEvent) error
+	Send(event *model.RetentionEvent) error
 }

@@ -11,7 +11,7 @@ import (
 	model "github.com/ozonmp/omp-demo-api/internal/model"
 )
 
-// MockEventRepo is a mock of EventRepo interface./*  */
+// MockEventRepo is a mock of EventRepo interface.
 type MockEventRepo struct {
 	ctrl     *gomock.Controller
 	recorder *MockEventRepoMockRecorder

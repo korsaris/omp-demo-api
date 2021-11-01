@@ -1,6 +1,7 @@
 package consumer
 
 import (
+	"context"
 	"sync"
 	"time"
 
@@ -9,7 +10,7 @@ import (
 )
 
 type Consumer interface {
-	Start()
+	Start(ctx context.Context)
 	Close()
 }
 
@@ -22,8 +23,8 @@ type consumer struct {
 	batchSize uint64
 	timeout   time.Duration
 
-	done chan bool
-	wg   *sync.WaitGroup
+	cancelFunc func()
+	wg         *sync.WaitGroup
 }
 
 func NewDbConsumer(
@@ -34,7 +35,6 @@ func NewDbConsumer(
 	events chan<- model.RetentionEvent) Consumer {
 
 	wg := &sync.WaitGroup{}
-	done := make(chan bool)
 
 	return &consumer{
 		n:         n,
@@ -43,17 +43,20 @@ func NewDbConsumer(
 		repo:      repo,
 		events:    events,
 		wg:        wg,
-		done:      done,
 	}
 }
 
-func (c *consumer) Start() {
+func (c *consumer) Start(ctx context.Context) {
+	csContext, cancelFunc := context.WithCancel(ctx)
+	c.cancelFunc = cancelFunc
 	for i := uint64(0); i < c.n; i++ {
 		c.wg.Add(1)
 
 		go func() {
 			defer c.wg.Done()
 			ticker := time.NewTicker(c.timeout)
+			defer ticker.Stop()
+
 			for {
 				select {
 				case <-ticker.C:
@@ -64,7 +67,7 @@ func (c *consumer) Start() {
 					for _, event := range events {
 						c.events <- event
 					}
-				case <-c.done:
+				case <-csContext.Done():
 					return
 				}
 			}
@@ -73,6 +76,6 @@ func (c *consumer) Start() {
 }
 
 func (c *consumer) Close() {
-	close(c.done)
+	c.cancelFunc()
 	c.wg.Wait()
 }

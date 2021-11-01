@@ -1,6 +1,7 @@
 package producer
 
 import (
+	"context"
 	"sync"
 	"time"
 
@@ -11,7 +12,7 @@ import (
 )
 
 type Producer interface {
-	Start()
+	Start(ctx context.Context)
 	Close()
 }
 
@@ -24,8 +25,8 @@ type producer struct {
 
 	workerPool *workerpool.WorkerPool
 
-	wg   *sync.WaitGroup
-	done chan bool
+	wg         *sync.WaitGroup
+	cancelFunc func()
 }
 
 // todo for students: add repo
@@ -37,7 +38,6 @@ func NewKafkaProducer(
 ) Producer {
 
 	wg := &sync.WaitGroup{}
-	done := make(chan bool)
 
 	return &producer{
 		n:          n,
@@ -45,11 +45,12 @@ func NewKafkaProducer(
 		events:     events,
 		workerPool: workerPool,
 		wg:         wg,
-		done:       done,
 	}
 }
 
-func (p *producer) Start() {
+func (p *producer) Start(ctx context.Context) {
+	prCtx, cancelFunc := context.WithCancel(ctx)
+	p.cancelFunc = cancelFunc
 	for i := uint64(0); i < p.n; i++ {
 		p.wg.Add(1)
 		go func() {
@@ -58,15 +59,17 @@ func (p *producer) Start() {
 				select {
 				case event := <-p.events:
 					if err := p.sender.Send(&event); err != nil {
+						// ok
 						p.workerPool.Submit(func() {
 							// ...
 						})
 					} else {
+						// err
 						p.workerPool.Submit(func() {
 							// ...
 						})
 					}
-				case <-p.done:
+				case <-prCtx.Done():
 					return
 				}
 			}
@@ -75,6 +78,6 @@ func (p *producer) Start() {
 }
 
 func (p *producer) Close() {
-	close(p.done)
+	p.cancelFunc()
 	p.wg.Wait()
 }
