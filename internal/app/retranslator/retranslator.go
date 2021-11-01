@@ -1,6 +1,7 @@
 package retranslator
 
 import (
+	"context"
 	"time"
 
 	"github.com/ozonmp/omp-demo-api/internal/app/consumer"
@@ -32,14 +33,14 @@ type Config struct {
 }
 
 type retranslator struct {
-	events     chan model.SubdomainEvent
+	events     chan model.RetentionEvent
 	consumer   consumer.Consumer
 	producer   producer.Producer
 	workerPool *workerpool.WorkerPool
 }
 
 func NewRetranslator(cfg Config) Retranslator {
-	events := make(chan model.SubdomainEvent, cfg.ChannelSize)
+	events := make(chan model.RetentionEvent, cfg.ChannelSize)
 	workerPool := workerpool.New(cfg.WorkerCount)
 
 	consumer := consumer.NewDbConsumer(
@@ -63,8 +64,9 @@ func NewRetranslator(cfg Config) Retranslator {
 }
 
 func (r *retranslator) Start() {
-	r.producer.Start()
-	r.consumer.Start()
+	// FIXME: Replace context
+	r.producer.Start(context.Background())
+	r.consumer.Start(context.Background())
 }
 
 func (r *retranslator) Close() {
